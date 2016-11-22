@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+	<!-- launch robot state publisher -->
+	<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+		<param name="publish_frequency" type="double" value="100.0" />
+	</node>
+	
+	<!-- Upload youbot model to parameter server --> 
+	<param name="robot_description" command="$(find xacro)/xacro.py $(find moveit_youbot_config)/robots/youbot.urdf.xacro" />
+
+</launch>
+

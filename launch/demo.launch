@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!-- Start the youbot -->
+	<include file="$(find grab_demo)/launch/youbot_driver.launch" />
+
+	<!-- Upload youbot model to parameter server --> 
+	<param name="robot_description" command="$(find xacro)/xacro.py $(find grab_demo)/robots/youbot.urdf.xacro" />
+
+</launch>
