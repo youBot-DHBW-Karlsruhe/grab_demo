@@ -131,8 +131,10 @@ add_executable(grab_demo_node src/grab_demo_node.cpp)
 target_link_libraries(grab_demo_node ${catkin_LIBRARIES})
 add_executable(arm_position_grab src/arm_position_grab.cpp)
 target_link_libraries(arm_position_grab ${catkin_LIBRARIES})
-add_executable(return_to_init_position src/return_to_init_position.cpp)
-target_link_libraries(return_to_init_position ${catkin_LIBRARIES})
+add_executable(arm_position_init src/arm_position_init.cpp)
+target_link_libraries(arm_position_init ${catkin_LIBRARIES})
+add_executable(just_grab src/just_grab.cpp)
+target_link_libraries(just_grab ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
