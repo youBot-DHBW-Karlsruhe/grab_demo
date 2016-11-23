@@ -128,7 +128,7 @@ include_directories(
 # add_dependencies(grab_demo ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(grab_demo_node src/grab_demo_node.cpp src/classes/DemoApplication.cpp)
+add_executable(grab_demo_node src/grab_demo_node.cpp src/classes/DemoYoubot.cpp)
 target_link_libraries(grab_demo_node ${catkin_LIBRARIES})
 add_executable(arm_position_grab src/arm_position_grab.cpp)
 target_link_libraries(arm_position_grab ${catkin_LIBRARIES})
