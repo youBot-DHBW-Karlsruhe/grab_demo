@@ -18,11 +18,12 @@ class DemoYoubot {
     public:
         // constant members
         static const int DOF = 5;
-        static const int DEFAULT_POINT_SECONDS = 6;
+        static const double TIMEOUT = 15;
+        static const double DEFAULT_POINT_SECONDS = 5.0;
 
         // constructor
         DemoYoubot(): pointSeconds(DEFAULT_POINT_SECONDS){}
-        DemoYoubot(int movementSecondsForEachPoint): pointSeconds(movementSecondsForEachPoint){}
+        DemoYoubot(double movementSecondsForEachPoint): pointSeconds(movementSecondsForEachPoint){}
         // destructor
         ~DemoYoubot() {
             delete actionClient;
@@ -45,7 +46,12 @@ class DemoYoubot {
         bool drop();
 
         /**
-         * Open gripper
+         * Returns arm and gripper to the initial pose of the youbot driver.
+         */
+        bool returnToInitPose();
+
+        /**
+         * Open gripper -> drop an object.
          */
         void openGripper();
 
@@ -61,7 +67,7 @@ class DemoYoubot {
 
     private:
         // constants
-        int pointSeconds;
+        double pointSeconds;
 
         // member
         actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> *actionClient;

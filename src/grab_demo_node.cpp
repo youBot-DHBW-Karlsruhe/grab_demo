@@ -20,18 +20,32 @@ int main(int argc, char **argv) {
 
     // create demo application and run it
     ROS_INFO("main(): creating demo application and initializing it");
-    youbot_grab_demo::DemoYoubot demo(youbot_grab_demo::DemoYoubot::DEFAULT_POINT_SECONDS);
+    double timeForEachPointInSeconds = 5;
+    youbot_grab_demo::DemoYoubot demo(timeForEachPointInSeconds);
+    //youbot_grab_demo::DemoYoubot demo(youbot_grab_demo::DemoYoubot::DEFAULT_POINT_SECONDS);
     bool successfullyInitialized = demo.initialize(node);
     if(!successfullyInitialized) {
         ROS_ERROR("Could not initialize demo application. It may not be started yet?");
         return 1;
     }
 
-    ROS_INFO("Grasping object...");
-    demo.grab();
+    ROS_INFO("main(): grasping object");
+    if(!demo.grab()) {
+        ROS_ERROR("main(): grasping object failed");
+        return 1;
+    }
 
-    ROS_INFO("Dropping object...");
-    demo.drop();
+    ROS_INFO("main(): dropping object");
+    if(!demo.drop()) {
+        ROS_ERROR("main(): dropping object failed");
+        return 1;
+    }
+
+    ROS_INFO("main(): returning arm to initial pose");
+    if(!demo.returnToInitPose()) {
+        ROS_ERROR("main(): failed");
+        return 1;
+    }
 	
 	return 0;
 }

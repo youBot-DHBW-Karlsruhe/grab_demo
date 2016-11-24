@@ -7,8 +7,8 @@ namespace youbot_grab_demo {
 bool DemoYoubot::initialize(ros::NodeHandle node) {
     this->actionClient = new actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>("arm_1/arm_controller/follow_joint_trajectory", true);
     // wait for action client to start
-    ROS_INFO("Waiting 10 seconds for action server to start.");
-    this->actionClient->waitForServer(ros::Duration(10));
+    ROS_INFO_STREAM("Waiting " << this->TIMEOUT << " seconds for action server to start.");
+    this->actionClient->waitForServer(ros::Duration(this->TIMEOUT));
 
     // create publisher
     ros::Publisher publisher = node.advertise<brics_actuator::JointPositions>("/arm_1/gripper_controller/position_command", 5);
@@ -25,8 +25,9 @@ bool DemoYoubot::initialize(ros::NodeHandle node) {
     }
 
     // move the arm to the tower pose and open the gripper
+    ROS_INFO("Initializing arm by moving it to the tower position and opening the gripper");
     double pose[this->DOF] = ARM_POSE_TOWER;
-    if(this->moveArmToPose(pose)) {
+    if(!this->moveArmToPose(pose)) {
         ROS_ERROR("Initialization failed: DemoYoubot could not move arm to ARM_POSE_TOWER");
         return false;
     }
@@ -39,7 +40,8 @@ bool DemoYoubot::initialize(ros::NodeHandle node) {
 bool DemoYoubot::grab() {
     ROS_INFO("creating demo trajectory points for grab and moving arm");
     double poseGrab[this->DOF] = ARM_POSE_GRAB;
-    if(this->moveArmToPose(poseGrab)) {
+    if(!this->moveArmToPose(poseGrab)) {
+        ROS_ERROR("could not move arm to grab pose");
         return false;
     }
 
@@ -48,16 +50,18 @@ bool DemoYoubot::grab() {
 
     ROS_INFO("returning arm to init position");
     double poseTower[this->DOF] = ARM_POSE_TOWER;
-    if(this->moveArmToPose(poseTower)) {
+    if(!this->moveArmToPose(poseTower)) {
+        ROS_ERROR("could not move arm to tower pose");
         return false;
     }
     return true;
 }
 
 bool DemoYoubot::drop() {
-    ROS_INFO("creating demo trajectory points for dropb and moving arm");
+    ROS_INFO("creating demo trajectory points for drop and moving arm");
     double poseDrop[this->DOF] = ARM_POSE_DROP;
-    if(this->moveArmToPose(poseDrop)) {
+    if(!this->moveArmToPose(poseDrop)) {
+        ROS_ERROR("could not move arm to drop pose");
         return false;
     }
 
@@ -66,20 +70,37 @@ bool DemoYoubot::drop() {
 
     ROS_INFO("returning arm to init position");
     double poseTower[this->DOF] = ARM_POSE_TOWER;
-    if(this->moveArmToPose(poseTower)) {
+    if(!this->moveArmToPose(poseTower)) {
+        ROS_ERROR("could not move arm to tower pose");
         return false;
     }
+    return true;
+}
+
+bool DemoYoubot::returnToInitPose() {
+    ROS_INFO("creating demo trajectory points for initial pose and moving arm");
+    double poseInit[this->DOF] = ARM_POSE_INIT;
+    if(!this->moveArmToPose(poseInit)) {
+        ROS_ERROR("could not move arm to initial pose");
+        return false;
+    }
+
+    ROS_INFO("closing gripper");
+    this->closeGripper();
+
     return true;
 }
 
 void DemoYoubot::openGripper() {
     brics_actuator::JointPositions gripperPositionMsg = this->createGripperPositionMsg(0.0115, 0.0115);
     this->sendGripperPositionMsg(gripperPositionMsg);
+    ROS_INFO("Gripper opened");
 }
 
 void DemoYoubot::closeGripper() {
     brics_actuator::JointPositions gripperPositionMsg = this->createGripperPositionMsg(0.0, 0.0);
     this->sendGripperPositionMsg(gripperPositionMsg);
+    ROS_INFO("Gripper closed");
 }
 
 bool DemoYoubot::moveArmToPose(const double pose[DOF]) {
@@ -88,7 +109,7 @@ bool DemoYoubot::moveArmToPose(const double pose[DOF]) {
     for (int i = 0; i < this->DOF; i++) {
         points[0][i] = pose[i];
     }
-    control_msgs::FollowJointTrajectoryGoal goalMsg = this->createTrajectoryGoal(1, points, 6);
+    control_msgs::FollowJointTrajectoryGoal goalMsg = this->createTrajectoryGoal(1, points, this->pointSeconds);
     if(!this->sendTrajectoryGoalAndWaitForResponse("arm_link_0", goalMsg)) {
         ROS_ERROR("No response received from action server for arm trajectory goal");
         return false;
@@ -151,7 +172,7 @@ bool DemoYoubot::sendTrajectoryGoalAndWaitForResponse(const std::string frame, c
     this->actionClient->sendGoal(trajectoryGoalMsg);
 
     // wait for reply that action was completed (or cancel after 10 sec)
-    this->actionClient->waitForResult(ros::Duration(20));
+    this->actionClient->waitForResult(ros::Duration(this->TIMEOUT));
 
     if(this->actionClient->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
         ROS_INFO("...Goal executed successfully");
