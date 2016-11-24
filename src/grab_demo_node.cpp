@@ -6,9 +6,6 @@
 #include "ros/ros.h"
 #include "grab_demo/DemoYoubot.h"
 
-// degree to radiant conversion
-#define DEG_TO_RAD(x) ((x) * M_PI / 180.0)
-
 int main(int argc, char **argv) {
     // initialize ros node
     ROS_INFO("main(): calling ros::init and initializing node");

@@ -3,22 +3,40 @@
 
 namespace youbot_grab_demo {
 
+bool Direction::isDiagonal() const {
+    int i = this->type;
+    return (i % 2 == 1);
+}
+
 // public methods
 bool DemoYoubot::initialize(ros::NodeHandle node) {
+    // create stop message
+    geometry_msgs::Twist msg;
+    msg.linear.x = 0;
+    msg.linear.y = 0;
+    msg.linear.z = 0;
+    msg.angular.x = 0;
+    msg.angular.y = 0;
+    msg.angular.z = 0;
+    this->stopMsg = msg;
+
+    // create action client
     this->actionClient = new actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>("arm_1/arm_controller/follow_joint_trajectory", true);
-    // wait for action client to start
     ROS_INFO_STREAM("Waiting " << this->TIMEOUT << " seconds for action server to start.");
     this->actionClient->waitForServer(ros::Duration(this->TIMEOUT));
 
-    // create publisher
-    ros::Publisher publisher = node.advertise<brics_actuator::JointPositions>("/arm_1/gripper_controller/position_command", 5);
+    // create publishers
+    ros::Publisher armPublisher = node.advertise<brics_actuator::JointPositions>("/arm_1/gripper_controller/position_command", 5);
+    ros::Publisher basePublisher = node.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
 
     // check status of members
-    if(!publisher) {
-        ROS_ERROR("Initialization failed: publisher for gripper commands could not be created");
+    if(!armPublisher || !basePublisher) {
+        ROS_ERROR("Initialization failed: publishers could not be created");
         return false;
     }
-    this->pub = publisher;
+    this->pubArm = armPublisher;
+    this->pubBase = basePublisher;
+
     if(!this->actionClient->isServerConnected()) {
         ROS_ERROR("Initialization failed: simple action client is not connected to a server");
         return false;
@@ -117,6 +135,81 @@ bool DemoYoubot::moveArmToPose(const double pose[DOF]) {
     return true;
 }
 
+void DemoYoubot::moveBase(const Direction *direction, double distanceInMeters) {
+    double speed = 0.1;
+    geometry_msgs::Twist moveMsg;
+
+    // diagonal case: calculate distance in x,y and then the time
+    if(speed <= 0) {
+        return;
+    }
+    double duration = 0;
+    if(direction->isDiagonal()) {
+        duration = (1/speed) * ((distanceInMeters/2) * std::sqrt(2));
+    } else {
+        duration = (1/speed) * distanceInMeters;
+    }
+
+    switch(direction->type) {
+    case LEFT_FORWARD:
+        moveMsg.linear.x = speed;
+        moveMsg.linear.y = speed;
+        break;
+    case FORWARD:
+        moveMsg.linear.x = speed;
+        break;
+    case RIGHT_FORWARD:
+        moveMsg.linear.x = speed;
+        moveMsg.linear.y = -speed;
+        break;
+    case LEFT:
+        moveMsg.linear.y = speed;
+        break;
+    case RIGHT:
+        moveMsg.linear.y = -speed;
+        break;
+    case LEFT_BACKWARD:
+        moveMsg.linear.x = -speed;
+        moveMsg.linear.y = speed;
+        break;
+    case BACKWARD:
+        moveMsg.linear.x = -speed;
+        break;
+    case RIGHT_BACKWARD:
+        moveMsg.linear.x = -speed;
+        moveMsg.linear.y = -speed;
+        break;
+    default:
+        return;
+    }
+
+    this->pubBase.publish(moveMsg);
+    ros::Duration(duration).sleep();
+    this->pubBase.publish(this->stopMsg);
+}
+
+void DemoYoubot::turnBaseDeg(double angleInDeg) {
+    this->turnBaseRad(DEG_TO_RAD(angleInDeg));
+}
+
+void DemoYoubot::turnBaseRad(double angleInRad) {
+    double speed = 0.5;
+
+    if(angleInRad == 0) {
+        return;
+    }
+    if(speed <= 0) {
+        return;
+    }
+    double duration = (1/speed) * std::abs(angleInRad);
+    geometry_msgs::Twist turnMsg;
+    turnMsg.angular.z = ((angleInRad < 0)? -1 : 1) * speed;
+
+    this->pubBase.publish(turnMsg);
+    ros::Duration(duration).sleep();
+    this->pubBase.publish(this->stopMsg);
+}
+
 // private methods
 control_msgs::FollowJointTrajectoryGoal DemoYoubot::createTrajectoryGoal(const int nPoints, const double jointAngles[][DOF], double pointSeconds) {
     control_msgs::FollowJointTrajectoryGoal msg;
@@ -183,7 +276,7 @@ bool DemoYoubot::sendTrajectoryGoalAndWaitForResponse(const std::string frame, c
 }
 
 void DemoYoubot::sendGripperPositionMsg(const brics_actuator::JointPositions msg) {
-    this->pub.publish(msg);
+    this->pubArm.publish(msg);
 }
 
 }

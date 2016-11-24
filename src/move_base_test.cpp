@@ -1,11 +1,12 @@
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
+#include "grab_demo/DemoYoubot.h"
 
 int main(int argc, char **argv) {
     ROS_INFO("Initializing ros node and publisher");
     ros::init(argc, argv, "move_base_test_node");
     ros::NodeHandle node;
-
+/*
     ros::Publisher pub = node.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
     sleep(2);
 
@@ -62,6 +63,7 @@ int main(int argc, char **argv) {
     //slightly to far
     //expected 180° turn around
 */
+/*
     ROS_INFO("move base forward/rightwards");
     geometry_msgs::Twist msg;
     msg.linear.x = 0.05;
@@ -79,6 +81,42 @@ int main(int argc, char **argv) {
     msg.angular.y = 0;
     msg.angular.z = 0;
     pub.publish(msg);
+*/
+
+    youbot_grab_demo::DemoYoubot demo(youbot_grab_demo::DemoYoubot::DEFAULT_POINT_SECONDS);
+    if(!demo.initialize(node)) {
+        ROS_ERROR("Could not initialize youbot demo");
+        return 1;
+    }
+
+    ROS_INFO("Testing move methods");
+    demo.moveBase(new youbot_grab_demo::Direction(youbot_grab_demo::FORWARD), 0.2);
+    ros::Duration(1).sleep();
+    demo.moveBase(new youbot_grab_demo::Direction(youbot_grab_demo::BACKWARD), 0.2);
+    ros::Duration(1).sleep();
+    demo.moveBase(new youbot_grab_demo::Direction(youbot_grab_demo::LEFT), 0.2);
+    ros::Duration(1).sleep();
+    demo.moveBase(new youbot_grab_demo::Direction(youbot_grab_demo::RIGHT), 0.2);
+    ros::Duration(1).sleep();
+    demo.moveBase(new youbot_grab_demo::Direction(youbot_grab_demo::LEFT_FORWARD), 0.2);
+    ros::Duration(1).sleep();
+    demo.moveBase(new youbot_grab_demo::Direction(youbot_grab_demo::RIGHT_BACKWARD), 0.2);
+    ros::Duration(1).sleep();
+    demo.moveBase(new youbot_grab_demo::Direction(youbot_grab_demo::RIGHT_FORWARD), 0.2);
+    ros::Duration(1).sleep();
+    demo.moveBase(new youbot_grab_demo::Direction(youbot_grab_demo::LEFT_BACKWARD), 0.2);
+    ros::Duration(1).sleep();
+
+    ROS_INFO("Testing turn methods");
+    demo.turnBaseDeg(90.0);
+    ros::Duration(1).sleep();
+    demo.turnBaseDeg(-90.0);
+    ros::Duration(1).sleep();
+
+    if(!demo.returnToInitPose()) {
+        ROS_ERROR("main(): failed");
+        return 1;
+    }
 
     ros::shutdown();
     return 0;

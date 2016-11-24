@@ -136,7 +136,7 @@ add_executable(arm_position_init src/arm_position_init.cpp)
 target_link_libraries(arm_position_init ${catkin_LIBRARIES})
 add_executable(just_grab src/just_grab.cpp)
 target_link_libraries(just_grab ${catkin_LIBRARIES})
-add_executable(move_base_test src/move_base_test.cpp)
+add_executable(move_base_test src/move_base_test.cpp src/classes/DemoYoubot.cpp)
 target_link_libraries(move_base_test ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the executable

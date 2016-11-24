@@ -5,6 +5,7 @@
 #include "actionlib/client/simple_action_client.h"
 #include "control_msgs/FollowJointTrajectoryAction.h"
 #include "brics_actuator/JointPositions.h"
+#include "geometry_msgs/Twist.h"
 
 namespace youbot_grab_demo
 {
@@ -13,6 +14,26 @@ namespace youbot_grab_demo
 #define ARM_POSE_TOWER  {2.994239875087764, 1.1520884828390492, -2.700355965393107, 2.000221069091924, 2.9442475376037303}
 #define ARM_POSE_GRAB   {2.953187717239413, 2.4635926544333344, -1.7269394542799927, 2.8039599388965972, 2.933296211100019}
 #define ARM_POSE_DROP   {2.94689446272501, 0.08719933455156284, -2.822768123140233, 0.053185836191759595, 5.855950830183301}
+
+// degree to radiant conversion
+#define DEG_TO_RAD(x) ((x) * M_PI / 180.0)
+
+
+enum Type {
+    LEFT_FORWARD = 1, FORWARD, RIGHT_FORWARD,
+    LEFT, STOP, RIGHT,
+    LEFT_BACKWARD, BACKWARD, RIGHT_BACKWARD
+};
+
+class Direction {
+    public:
+        const Type type;
+
+        Direction(Type pType): type(pType){}
+        ~Direction(){}
+
+        bool isDiagonal() const;
+};
 
 class DemoYoubot {
     public:
@@ -23,7 +44,9 @@ class DemoYoubot {
 
         // constructor
         DemoYoubot(): pointSeconds(DEFAULT_POINT_SECONDS){}
+
         DemoYoubot(double movementSecondsForEachPoint): pointSeconds(movementSecondsForEachPoint){}
+
         // destructor
         ~DemoYoubot() {
             delete actionClient;
@@ -65,13 +88,30 @@ class DemoYoubot {
          */
         bool moveArmToPose(const double pose[DOF]);
 
+        /**
+         * Moves the base in the specified direction.
+         */
+        void moveBase(const Direction *direction, double distanceInMeters);
+
+        /**
+         * Turns the base in z (left). Negative values corresponds to the other direction (right).
+         */
+        void turnBaseRad(double angleInRad);
+
+        /**
+         * Turns the base in z (left). Negative values corresponds to the other direction (right).
+         */
+        void turnBaseDeg(double angleInDeg);
+
     private:
         // constants
-        double pointSeconds;
+        const double pointSeconds;
+        geometry_msgs::Twist stopMsg;
 
         // member
         actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> *actionClient;
-        ros::Publisher pub;
+        ros::Publisher pubArm;
+        ros::Publisher pubBase;
 
         // disable copy-constructor and assignment operator
         DemoYoubot(const DemoYoubot&);
