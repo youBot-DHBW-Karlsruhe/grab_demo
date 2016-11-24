@@ -4,9 +4,6 @@
 //
 
 #include "ros/ros.h"
-#include "actionlib/client/simple_action_client.h"
-#include "control_msgs/FollowJointTrajectoryAction.h"
-#include "brics_actuator/JointPositions.h"
 #include "grab_demo/DemoYoubot.h"
 
 // degree to radiant conversion
