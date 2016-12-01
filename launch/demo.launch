@@ -7,4 +7,8 @@
 	<!-- Upload youbot model to parameter server --> 
 	<param name="robot_description" command="$(find xacro)/xacro.py $(find grab_demo)/robots/youbot.urdf.xacro" />
 
+	<!-- launch demo node -->
+	<!--<node pkg="grab_demo" name="grab_demo_node" type="grab_demo_node />-->
+
+
 </launch>

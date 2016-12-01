@@ -42,11 +42,11 @@ bool DemoYoubot::initialize(ros::NodeHandle node) {
         return false;
     }
 
-    // move the arm to the tower pose and open the gripper
-    ROS_INFO("Initializing arm by moving it to the tower position and opening the gripper");
-    double pose[this->DOF] = ARM_POSE_TOWER;
+    // move the arm to the observe pose and open the gripper
+    ROS_INFO("Initializing arm by moving it to the observe position and opening the gripper");
+    double pose[this->DOF] = ARM_POSE_OBSERVE;
     if(!this->moveArmToPose(pose)) {
-        ROS_ERROR("Initialization failed: DemoYoubot could not move arm to ARM_POSE_TOWER");
+        ROS_ERROR("Initialization failed: DemoYoubot could not move arm to ARM_POSE_OBSERVE");
         return false;
     }
 
