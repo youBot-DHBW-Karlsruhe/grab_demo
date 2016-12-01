@@ -113,6 +113,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
+        include
 	${catkin_INCLUDE_DIRS}
 )
 
@@ -127,14 +128,20 @@ include_directories(
 # add_dependencies(grab_demo ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(grab_demo_node src/grab_demo_node.cpp)
+add_executable(grab_demo_node src/grab_demo_node.cpp src/classes/DemoYoubot.cpp)
 target_link_libraries(grab_demo_node ${catkin_LIBRARIES})
 add_executable(arm_position_grab src/arm_position_grab.cpp)
 target_link_libraries(arm_position_grab ${catkin_LIBRARIES})
 add_executable(arm_position_init src/arm_position_init.cpp)
 target_link_libraries(arm_position_init ${catkin_LIBRARIES})
+add_executable(arm_position_observe src/arm_position_observe.cpp)
+target_link_libraries(arm_position_observe ${catkin_LIBRARIES})
 add_executable(just_grab src/just_grab.cpp)
 target_link_libraries(just_grab ${catkin_LIBRARIES})
+add_executable(move_base_test src/move_base_test.cpp src/classes/DemoYoubot.cpp)
+target_link_libraries(move_base_test ${catkin_LIBRARIES})
+add_executable(base_move_inverse src/base_move_inverse.cpp src/classes/DemoYoubot.cpp)
+target_link_libraries(base_move_inverse ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -160,25 +167,23 @@ target_link_libraries(just_grab ${catkin_LIBRARIES})
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS grab_demo grab_demo_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(TARGETS grab_demo_node arm_position_grab arm_position_init just_grab
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
-#   PATTERN ".svn" EXCLUDE
-# )
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE
+)
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+install(DIRECTORY launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 
 #############
 ## Testing ##
