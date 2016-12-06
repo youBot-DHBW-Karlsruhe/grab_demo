@@ -62,7 +62,7 @@
   </xacro:youbot_gripper>
 
   <!-- camera at the gripper -->
-  <xacro:asus_xtion_camera name="${camera_name}" parent="${arm_name}_link_5" tilt="0" >
+  <xacro:asus_xtion_camera name="${camera_name}" parent="${arm_name}_link_5" tilt="0.35" >
     <!-- <origin xyz="-0.035 0 0.015" rpy="0 -1.57 0" /> -->
     <origin xyz="-0.035 0 0.005" rpy="0 -1.57 0" />
   </xacro:asus_xtion_camera>
