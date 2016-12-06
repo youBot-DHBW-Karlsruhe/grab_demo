@@ -7,6 +7,14 @@
 	<!-- Upload youbot model to parameter server --> 
 	<param name="robot_description" command="$(find xacro)/xacro.py $(find grab_demo)/robots/youbot.urdf.xacro" />
 
+	<!-- start gmapping for SLAM and map creation -->
+	<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
+		<param name="base_frame" value="base_footprint"/>
+		<param name="odom_frame" value="odom" />
+		<param name="map_update_interval" value="5.0" />
+		<remap from="scan" to="/scan" />
+	</node>
+
 	<!-- launch demo node -->
 	<!--<node pkg="grab_demo" name="grab_demo_node" type="grab_demo_node />-->
 
