@@ -40,7 +40,9 @@
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>object_finder_2d</build_depend>
 
+  <run_depend>object_finder_2d</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
