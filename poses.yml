@@ -64,5 +64,18 @@ position: [2.9551310742334604, 0.14250948982774467, -0.4021081516962256, 2.76838
 velocity: [-0.0, -0.0, 0.0, -0.0, -0.0, 0.0, 0.0]
 effort: []
 ---
+Observe Front
+---
+header: 
+  seq: 10417
+  stamp: 
+    secs: 1479395591
+    nsecs: 64880614
+  frame_id: ''
+name: ['arm_joint_1', 'arm_joint_2', 'arm_joint_3', 'arm_joint_4', 'arm_joint_5', 'gripper_finger_joint_l', 'gripper_finger_joint_r']
+position: [2.9800020160743794, 0.7000012169388103, -1.6999943246737768, 3.5986058891194013, 2.9365705471051693, 0.0, 0.0]
+velocity: [-0.0, -0.0, 0.0, -0.0, -0.0, 0.0, 0.0]
+effort: []
+---
 
 
