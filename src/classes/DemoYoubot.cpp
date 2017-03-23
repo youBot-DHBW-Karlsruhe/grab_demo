@@ -66,10 +66,10 @@ bool DemoYoubot::grab() {
     ROS_INFO("closing gripper for grasping");
     this->closeGripper();
 
-    ROS_INFO("returning arm to init position");
+    ROS_INFO("returning arm to candle position");
     double poseTower[this->DOF] = ARM_POSE_TOWER;
     if(!this->moveArmToPose(poseTower)) {
-        ROS_ERROR("could not move arm to tower pose");
+        ROS_ERROR("could not move arm to candle pose");
         return false;
     }
     return true;
@@ -86,10 +86,10 @@ bool DemoYoubot::drop() {
     ROS_INFO("opening gripper for dropping");
     this->openGripper();
 
-    ROS_INFO("returning arm to init position");
+    ROS_INFO("returning arm to candle position");
     double poseTower[this->DOF] = ARM_POSE_TOWER;
     if(!this->moveArmToPose(poseTower)) {
-        ROS_ERROR("could not move arm to tower pose");
+        ROS_ERROR("could not move arm to candle pose");
         return false;
     }
     return true;

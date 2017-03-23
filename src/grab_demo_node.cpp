@@ -9,6 +9,13 @@
 #include "geometry_msgs/PolygonStamped.h"
 #include "object_finder_2d/NearestPoint.h"
 
+#define RETURN_OK 0;
+#define RETURN_GRAB_ERROR 1;
+#define RETURN_DROP_ERROR 2;
+#define RETURN_REINIT_ERROR 3;
+#define RETURN_TOINIT_ERROR 4;
+#define RETURN_INIT_ERROR 10;
+
 class NearestPointListener {
 private:
     ros::ServiceClient nearestPointService;
@@ -35,21 +42,21 @@ public:
 };
 
 const std::string BASE_FRAME = "base_link";
-const double WAIT_TIME = 1.0;
+const double WAIT_TIME = 0.5;
 const double TIME_FOR_EACH_POINT_IN_SECONDS = 5.5;
-const int COUNTER_THRESHOLD = 5;
-const double NEAR  = 0.25;
-const double FAR   = 0.35;
-const double LEFT  = 0.05;
-const double RIGHT =-0.05;
+const int COUNTER_THRESHOLD = 4;
+const double NEAR  = 0.39;
+const double FAR   = 0.47;
+const double LEFT  = 0.03;
+const double RIGHT =-0.03;
 
 bool insideBoundings(const geometry_msgs::Point32 point) {
-    int x = point.x;
-    int y = point.y;
-    int z = point.z;
+    double x = point.x;
+    double y = point.y;
+    double z = point.z;
 
     if(x <= FAR   && x >= NEAR &&
-       y <= RIGHT && y >= LEFT) {
+       y <= LEFT && y >= RIGHT) {
         return true;
     }
     return false;
@@ -103,8 +110,8 @@ int main(int argc, char **argv) {
     ROS_INFO("main(): calling ros::init and initializing node");
     ros::init(argc, argv, "grab_demo_node");
     ros::NodeHandle node;
+    int return_code = RETURN_OK;
 
-    /*
     // create demo application and initialize it
     ROS_INFO("main(): creating demo application and initializing it");
     youbot_grab_demo::DemoYoubot demo(TIME_FOR_EACH_POINT_IN_SECONDS);
@@ -112,67 +119,87 @@ int main(int argc, char **argv) {
     bool successfullyInitialized = demo.initialize(node);
     if(!successfullyInitialized) {
         ROS_ERROR("Could not initialize demo application. It may not be started yet?");
-        return 1;
+        return RETURN_INIT_ERROR;
     }
 
-    */
     // initialize boundary publisher
+    ROS_INFO("main(): initializing boundary publisher");
     ros::Publisher pubBoundaries = node.advertise<geometry_msgs::PolygonStamped>("/boundaries", 10);
     geometry_msgs::PolygonStamped polyMsg = initializeBoundaryMsg();
 
-    /*
     // initialize NearestPointService Listener
+    ROS_INFO("main(): initializing nearest point listener");
     NearestPointListener npService(node);
-    */
     int counter;
     reset(&counter);
 
+    ROS_INFO("main(): Waiting 10 seconds before startup");
+    ros::Duration(10.0 - WAIT_TIME).sleep();
+
     // main loop:
+    ROS_INFO("main(): Starting main routine...");
     while(ros::ok()) {
         // wait a moment and start / test again
         ros::Duration(WAIT_TIME/2.).sleep();
         ros::spinOnce();
         ros::Duration(WAIT_TIME/2.).sleep();
-        if(!ros::ok()) return 1;
+        if(!ros::ok()) break;
 
-        ROS_INFO("main(): Testing if object is inside boundaries");
         publishBoundaries(pubBoundaries, polyMsg);
-        geometry_msgs::Point32 nearest; // = npService.nearestPoint();
+        geometry_msgs::Point32 nearest = npService.nearestPoint();
 
         // counter to be sure there is an object
+        //ROS_INFO_STREAM("Testing point (" << nearest.x << "/"
+        //                                  << nearest.y << "/"
+        //                                  << nearest.z << ")");
         if(insideBoundings(nearest)) {
             counter++;
+            //ROS_INFO_STREAM("main(): was inside --> new counter: " << counter);
         } else {
-            ROS_INFO_STREAM("main(): counter reset, was " << counter);
             reset(&counter);
+            //ROS_INFO_STREAM("main(): was outside --> new counter:"<< counter);
         }
 
-        // if we found enough points inside the boundaries grab the object
+        // if we've found enough points inside the boundaries grab the object
         if(counter >= COUNTER_THRESHOLD) {
-            ROS_INFO("main(): grasping object");
-            /*
+            ROS_INFO_STREAM("main(): grasping object after " << WAIT_TIME*4 << "seconds");
+            // wait a moment
+            ros::Duration(WAIT_TIME*2).sleep();
+            ros::spinOnce();
+            ros::Duration(WAIT_TIME*2).sleep();
+            if(!ros::ok()) break;
+
             if(!demo.grab()) {
                 ROS_ERROR("main(): grasping object failed");
-                return 1;
+                return_code = RETURN_GRAB_ERROR;
+                break;
             }
 
             ROS_INFO("main(): dropping object");
             if(!demo.drop()) {
                 ROS_ERROR("main(): dropping object failed");
-                return 1;
+                return_code = RETURN_DROP_ERROR;
+                break;
             }
 
             ROS_INFO("main(): returning arm to initial pose");
-            if(!demo.returnToInitPose()) {
-                ROS_ERROR("main(): failed");
-                return 1;
-            }*/
+            double poseObserve[demo.DOF] = ARM_POSE_OBSERVE;
+            if(!demo.moveArmToPose(poseObserve)) {
+                ROS_ERROR("main(): reinitializing failed");
+                return_code = RETURN_REINIT_ERROR;
+                break;
+            }
 
             // reset counter
             reset(&counter);
         }
     }
+
+    if(!demo.returnToInitPose()) {
+        ROS_ERROR("main(): could not return to init pose");
+        return_code = RETURN_TOINIT_ERROR;
+    }
 	
-	return 0;
+    return return_code;
 }
 
